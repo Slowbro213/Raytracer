@@ -1,0 +1,132 @@
+#include "CApp.h"
+#include "tracer/qbLinAlg/qbVector.h"
+
+CApp::CApp()
+{
+  isRunning = true;
+  pWindow = NULL;
+  pRenderer = NULL;
+}
+
+bool CApp::OnInit()
+{
+  if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+  {
+    return false;
+  }
+
+  pWindow = SDL_CreateWindow("RayTracer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
+  if (pWindow == NULL)
+  {
+    return false;
+  }
+
+  pRenderer = SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED);
+  if (pRenderer == NULL)
+  {
+    return false;
+  }
+
+  m_image.Initialize(1280, 720, pRenderer);
+
+
+  //Test 
+  sempRT::Camera camera;
+  camera.SetPosition(qbVector<double> {std::vector<double>{0.0, 0.0, 0.0}});
+  camera.SetLookAt(qbVector<double> {std::vector<double>{0.0, 2.0, 0.0}});
+  camera.SetUp(qbVector<double> {std::vector<double>{0.0, 0.0, 1.0}});
+  camera.SetLength(1.0);
+  camera.SetHorzSize(1.0);
+  camera.SetAspect(1.0);
+  camera.UpdateCameraGeometry();
+
+  auto screenCenter = camera.GetScreenCenter();
+  auto screenU = camera.GetU();
+  auto screenV = camera.GetV();
+
+  std::cout << "Screen Center: " << std::endl;
+  PrintVector(screenCenter);
+  std::cout << "Screen U: " << std::endl;
+  PrintVector(screenU);
+  std::cout << "Screen V: " << std::endl;
+  PrintVector(screenV);
+
+
+  return true;
+}
+
+int CApp::OnExecute()
+{
+  SDL_Event Event;
+
+  if (OnInit() == false)
+  {
+    return -1;
+  }
+
+  while (isRunning)
+  {
+    while (SDL_PollEvent(&Event))
+    {
+      OnEvent(&Event);
+    }
+
+    OnLoop();
+    OnRender();
+  }
+
+  OnExit();  // Ensure we call OnExit before returning
+  return 0;
+}
+
+void CApp::OnEvent(SDL_Event* Event)
+{
+  if (Event->type == SDL_QUIT)
+  {
+    isRunning = false;
+  }
+}
+
+void CApp::OnLoop()
+{
+  // Game/Rendering Logic can go here
+}
+
+void CApp::OnRender()
+{
+  SDL_SetRenderDrawColor(pRenderer, 255, 255, 255, 255);
+  SDL_RenderClear(pRenderer);
+
+  m_scene.Render(m_image);
+  m_image.Display();
+  SDL_RenderPresent(pRenderer);
+}
+
+void CApp::OnExit()
+{
+  // Clean up resources properly
+  if (pRenderer != NULL)
+  {
+    SDL_DestroyRenderer(pRenderer);
+    pRenderer = NULL;
+  }
+
+  if (pWindow != NULL)
+  {
+    SDL_DestroyWindow(pWindow);
+    pWindow = NULL;
+  }
+
+  SDL_Quit();  // Quit SDL subsystems
+}
+
+
+void CApp::PrintVector(const qbVector<double> &vec)
+{
+  int nRows = vec.GetNumDims();
+
+  for (int i = 0; i < nRows; i++)
+  {
+    std::cout << std::fixed << std::setprecision(2) << vec.GetElement(i) << std::endl;
+  }
+}
