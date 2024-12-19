@@ -28,7 +28,7 @@ namespace sempRT {
       double GetHorzSize() const;
       double GetAspect() const;
 
-      Ray GenerateRay(float proScreenX, float proScreenY) ;
+      bool GenerateRay(float proScreenX, float proScreenY, Ray &ray) ;
 
       void UpdateCameraGeometry();
 

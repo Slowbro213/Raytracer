@@ -23,3 +23,8 @@ $(linkTarget): $(objects)
 .PHONY:
 clean:
 	rm -f $(rebuildables) 
+
+.PHONY:
+fast:
+	$(MAKE) $(linkTarget) CFLAGS="-Ofast -march=native -funroll-loops -std=c++17"
+

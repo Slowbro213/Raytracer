@@ -41,6 +41,7 @@ void SempImage::SetPixel(const int x, const int y, const double r, const double 
 
 void SempImage::Display()
 {
+  ComputeMaxValues();
   Uint32* tempPixels = new Uint32[m_xSize * m_ySize];
 
   memset(tempPixels, 0, m_xSize * m_ySize * sizeof(Uint32));
@@ -49,7 +50,7 @@ void SempImage::Display()
   {
     for(int x = 0; x < m_xSize; x++)
     {
-      tempPixels[y * m_xSize + x] = ConvertColor(m_rChannel.at(x).at(y), m_gChannel.at(x).at(y), m_bChannel.at(x).at(y), 1.0);
+      tempPixels[y * m_xSize + x] = ConvertColor(m_rChannel.at(x).at(y), m_gChannel.at(x).at(y), m_bChannel.at(x).at(y));
     }
   }
 
@@ -99,19 +100,56 @@ void SempImage::InitTexture()
 
 
 
-Uint32 SempImage::ConvertColor(const double r, const double g, const double b, const double a)
+Uint32 SempImage::ConvertColor(const double red, const double green, const double blue)
 {
-  unsigned char red = static_cast<unsigned char>(r);
-  unsigned char green = static_cast<unsigned char>(g);
-  unsigned char blue = static_cast<unsigned char>(b);
+	// Convert the colours to unsigned integers.
+	unsigned char r = static_cast<unsigned char>((red / m_overallMax) * 255.0);
+	unsigned char g = static_cast<unsigned char>((green / m_overallMax) * 255.0);
+	unsigned char b = static_cast<unsigned char>((blue / m_overallMax) * 255.0);
+	
+	#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		Uint32 pixelColor = (r << 24) + (g << 16) + (b << 8) + 255;
+	#else
+		Uint32 pixelColor = (255 << 24) + (b << 16) + (g << 8) + r;
+	#endif
+	
+	return pixelColor;
+}
 
-
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-  Uint32 color = (red << 24) + (green << 16) + (blue << 8) + 255;
-#else 
-  Uint32 color = (255 << 24) + (red << 16) + (green << 8) + blue;
-#endif
-return color;
+// Function to compute maximum values.
+void SempImage::ComputeMaxValues()
+{
+	m_maxRed = 0.0;
+	m_maxGreen = 0.0;
+	m_maxBlue = 0.0;
+	m_overallMax = 0.0;
+	for (int x=0; x<m_xSize; ++x)
+	{
+		for (int y=0; y<m_ySize; ++y)
+		{
+			double redValue		= m_rChannel.at(x).at(y);
+			double greenValue	= m_gChannel.at(x).at(y);
+			double blueValue	= m_bChannel.at(x).at(y);
+			
+			if (redValue > m_maxRed)
+				m_maxRed = redValue;
+				
+			if (greenValue > m_maxGreen)
+				m_maxGreen = greenValue;
+				
+			if (blueValue > m_maxBlue)
+				m_maxBlue = blueValue;
+				
+			if (m_maxRed > m_overallMax)
+				m_overallMax = m_maxRed;
+			
+			if (m_maxGreen > m_overallMax)
+				m_overallMax = m_maxGreen;
+				
+			if (m_maxBlue > m_overallMax)
+				m_overallMax = m_maxBlue;
+		}
+	}
 }
 
 

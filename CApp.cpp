@@ -30,26 +30,15 @@ bool CApp::OnInit()
   m_image.Initialize(1280, 720, pRenderer);
 
 
-  //Test 
-  sempRT::Camera camera;
-  camera.SetPosition(qbVector<double> {std::vector<double>{0.0, 0.0, 0.0}});
-  camera.SetLookAt(qbVector<double> {std::vector<double>{0.0, 2.0, 0.0}});
-  camera.SetUp(qbVector<double> {std::vector<double>{0.0, 0.0, 1.0}});
-  camera.SetLength(1.0);
-  camera.SetHorzSize(1.0);
-  camera.SetAspect(1.0);
-  camera.UpdateCameraGeometry();
+  SDL_SetRenderDrawColor(pRenderer, 255, 255, 255, 255);
+  SDL_RenderClear(pRenderer);
 
-  auto screenCenter = camera.GetScreenCenter();
-  auto screenU = camera.GetU();
-  auto screenV = camera.GetV();
+  m_scene.Render(m_image);
 
-  std::cout << "Screen Center: " << std::endl;
-  PrintVector(screenCenter);
-  std::cout << "Screen U: " << std::endl;
-  PrintVector(screenU);
-  std::cout << "Screen V: " << std::endl;
-  PrintVector(screenV);
+  m_image.Display();
+
+  SDL_RenderPresent(pRenderer);
+
 
 
   return true;
@@ -94,12 +83,12 @@ void CApp::OnLoop()
 
 void CApp::OnRender()
 {
-  SDL_SetRenderDrawColor(pRenderer, 255, 255, 255, 255);
-  SDL_RenderClear(pRenderer);
+  //SDL_SetRenderDrawColor(pRenderer, 255, 255, 255, 255);
+  //SDL_RenderClear(pRenderer);
 
-  m_scene.Render(m_image);
-  m_image.Display();
-  SDL_RenderPresent(pRenderer);
+  //m_scene.Render(m_image);
+  //m_image.Display();
+  //SDL_RenderPresent(pRenderer);
 }
 
 void CApp::OnExit()

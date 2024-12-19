@@ -107,10 +107,14 @@ void sempRT::Camera::UpdateCameraGeometry()
 }
 
 
-sempRT::Ray sempRT::Camera::GenerateRay(float proScreenX, float proScreenY)
+bool sempRT::Camera::GenerateRay(float proScreenX, float proScreenY, Ray &ray)
 {
   qbVector<double> screenWorldPart1 = m_projectionScreenCenter + m_projectionScreenU * proScreenX;
   qbVector<double> screenWorldCoordinate = screenWorldPart1 + m_projectionScreenV * proScreenY;
 
-  return Ray(m_cameraPosition, screenWorldCoordinate);
+  ray.m_point1 = m_cameraPosition;
+  ray.m_point2 = screenWorldCoordinate;
+  ray.m_lab = screenWorldCoordinate - m_cameraPosition;
+
+  return true;
 }
