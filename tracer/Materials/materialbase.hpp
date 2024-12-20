@@ -26,7 +26,7 @@ namespace sempRT {
 
     public: 
       inline static int m_maxReflectionRays;
-      inline static int m_reflectionDepth;
+      int m_reflectionDepth;
 
   };
 }

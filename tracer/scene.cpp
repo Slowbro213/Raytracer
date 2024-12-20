@@ -1,6 +1,7 @@
 #include "scene.hpp"
 #include "./Materials/simplematerial.hpp"
-
+#include <thread>
+#include <mutex>
 
 sempRT::Scene::Scene()
 {
@@ -11,7 +12,7 @@ sempRT::Scene::Scene()
 
   mattest -> m_baseColor = qbVector<double>{std::vector<double> {1,0.0,0.0}};
   mattest -> m_reflectivity = 0.5;
-  mattest -> m_shine = 10;
+  mattest -> m_shine = 9;
 
   m_camera.SetPosition(	qbVector<double>{std::vector<double> {0.0, -10.0, -4.0}} );
   m_camera.SetLookAt	( qbVector<double>{std::vector<double> {0.0, 0.0, 0.0}} );
@@ -29,10 +30,18 @@ sempRT::Scene::Scene()
 
 
   auto mattest2 = std::make_shared<sempRT::SimpleMaterial> (sempRT::SimpleMaterial());
+  auto mattest3 = std::make_shared<sempRT::SimpleMaterial> (sempRT::SimpleMaterial());
+  auto mattest4 = std::make_shared<sempRT::SimpleMaterial> (sempRT::SimpleMaterial());
 
   mattest2 -> m_baseColor = qbVector<double>{std::vector<double> {0.5,0.5,0.5}};
   mattest2 -> m_reflectivity = 0.5;
   mattest2 -> m_shine = 10;
+  mattest3 -> m_baseColor = qbVector<double>{std::vector<double> {0.0,0.5,0.5}};
+  mattest3 -> m_reflectivity = 0.8;
+  mattest3 -> m_shine = 5;
+  mattest4 -> m_baseColor = qbVector<double>{std::vector<double> {0.5,0.5,0.0}};
+  mattest4 -> m_reflectivity = 0.2;
+  mattest4 -> m_shine = 2;
   m_objectList.at(3)->AssignMaterial(mattest2);
 
   sempRT::Gtform planeMatrix;
@@ -63,19 +72,15 @@ sempRT::Scene::Scene()
   m_objectList.at(2) -> m_baseColor = qbVector<double>{std::vector<double>{1.0, 0.8, 0.0}};
 
   m_objectList.at(2) -> AssignMaterial(mattest);
+  m_objectList.at(1) -> AssignMaterial(mattest3);
+  m_objectList.at(0) -> AssignMaterial(mattest4);
 
   // Construct a test light.
   m_lightList.push_back(std::make_shared<sempRT::PointLight> (sempRT::PointLight()));
   m_lightList.at(0) -> m_location = qbVector<double> {std::vector<double> {5.0, -10.0, -5.0}};
   m_lightList.at(0) -> m_color = qbVector<double> {std::vector<double> {1.0, 1.0, 1.0}};
 
-  m_lightList.push_back(std::make_shared<sempRT::PointLight> (sempRT::PointLight()));
-  m_lightList.at(1) -> m_location = qbVector<double> {std::vector<double> {-5.0, -10.0, -5.0}};
-  m_lightList.at(1) -> m_color = qbVector<double> {std::vector<double> {1.0, 1.0, 1.0}};
-
-  m_lightList.push_back(std::make_shared<sempRT::PointLight> (sempRT::PointLight()));
-  m_lightList.at(2) -> m_location = qbVector<double> {std::vector<double> {0.0, -10.0, -5.0}};
-  m_lightList.at(2) -> m_color = qbVector<double> {std::vector<double> {1.0, 1.0, 1.0}};}
+}
 
 sempRT::Scene::~Scene()
 {
@@ -84,57 +89,89 @@ sempRT::Scene::~Scene()
 }
 
 
-bool sempRT::Scene::Render(SempImage &outputImage)
-{
-  int xSize = outputImage.GetXSize();
-  int ySize = outputImage.GetYSize();
-
-  sempRT::Ray cameraRay;
-  qbVector<double> intPoint {3};
-  qbVector<double> localNormal {3};
-  qbVector<double> localColor {3};
 
 
-  for (int y = 0; y < ySize; y++) {
+bool sempRT::Scene::Render(SempImage &outputImage) {
+    double time = SDL_GetTicks();
+    int xSize = outputImage.GetXSize();
+    int ySize = outputImage.GetYSize();
+    
+    const int threshold = 256; 
 
-    std::cout<<"Rendering row: "<<y<< " out of " <<ySize <<std::endl;
+    RenderRecursive(outputImage, 0, 0, xSize, ySize, threshold);
 
-    for (int x = 0; x < xSize; x++) {
-      // Normalize coordinates and adjust for aspect ratio
-      double normX = (static_cast<double>(x) / static_cast<double>(xSize)) * 2.0 - 1.0;
-      double normY = (static_cast<double>(y) / static_cast<double>(ySize)) * 2.0 - 1.0;
+    std::cout << "Rendering complete." << std::endl;
+    std::cout << "Time taken: " << (SDL_GetTicks() - time) / 1000 << "s" << std::endl;
 
-      // Generate the ray
-      m_camera.GenerateRay(normX, normY, cameraRay);
-
-      std::shared_ptr<sempRT::ObjectBase> closestObject = nullptr;
-
-      qbVector<double> closestIntPoint {3};
-      qbVector<double> closestLocalNormal {3};
-      qbVector<double> closestLocalColor {3};
-      bool hitFlag = CastRay(cameraRay, closestObject, closestIntPoint, closestLocalNormal, closestLocalColor);
-
-
-      if(hitFlag){
-        if(closestObject->hasMaterial)
-        {
-          sempRT::MaterialBase::m_reflectionDepth = 0;
-          qbVector<double> color = closestObject->m_material->ComputeColor(m_objectList, m_lightList, closestObject, closestIntPoint, closestLocalNormal, cameraRay);
-          outputImage.SetPixel(x, y, color.GetElement(0), color.GetElement(1), color.GetElement(2));
-
-        }else{
-
-          qbVector<double> matColor = sempRT::MaterialBase::ComputeDiffuseColor(m_objectList, m_lightList, closestObject, closestIntPoint, closestLocalNormal, closestObject->m_baseColor);
-          outputImage.SetPixel(x, y, matColor.GetElement(0), matColor.GetElement(1), matColor.GetElement(2));
-        }
-      }
-
-    }
-  }
-
-  return true;
+    return true;
 }
 
+void sempRT::Scene::RenderRecursive(SempImage &outputImage, int xStart, int yStart, int xEnd, int yEnd, int threshold) {
+    int width = xEnd - xStart;
+    int height = yEnd - yStart;
+
+    if (width <= threshold || height <= threshold) {
+        for (int y = yStart; y < yEnd; ++y) {
+            for (int x = xStart; x < xEnd; ++x) {
+                // Normalize coordinates and adjust for aspect ratio
+                double normX = (static_cast<double>(x) / static_cast<double>(outputImage.GetXSize())) * 2.0 - 1.0;
+                double normY = (static_cast<double>(y) / static_cast<double>(outputImage.GetYSize())) * 2.0 - 1.0;
+
+                sempRT::Ray cameraRay;
+                m_camera.GenerateRay(normX, normY, cameraRay);
+
+                qbVector<double> closestIntPoint{3}, closestLocalNormal{3}, closestLocalColor{3};
+                std::shared_ptr<sempRT::ObjectBase> closestObject = nullptr;
+
+                bool hitFlag = CastRay(cameraRay, closestObject, closestIntPoint, closestLocalNormal, closestLocalColor);
+
+                qbVector<double> pixelColor{3};
+                if (hitFlag) {
+                    if (closestObject->hasMaterial) {
+                        pixelColor = closestObject->m_material->ComputeColor(
+                            m_objectList, m_lightList, closestObject,
+                            closestIntPoint, closestLocalNormal, cameraRay
+                        );
+                    } else {
+                        pixelColor = sempRT::MaterialBase::ComputeDiffuseColor(
+                            m_objectList, m_lightList, closestObject,
+                            closestIntPoint, closestLocalNormal, closestObject->m_baseColor
+                        );
+                    }
+                }
+
+                outputImage.SetPixel(x, y, pixelColor.GetElement(0), pixelColor.GetElement(1), pixelColor.GetElement(2));
+            }
+        }
+        return;
+    }
+
+    int midX = (xStart + xEnd) / 2;
+    int midY = (yStart + yEnd) / 2;
+
+    std::vector<std::thread> threads;
+
+    threads.emplace_back([this, &outputImage, xStart, yStart, midX, midY, threshold]() {
+        RenderRecursive(outputImage, xStart, yStart, midX, midY, threshold);
+    });
+
+    threads.emplace_back([this, &outputImage, midX, yStart, xEnd, midY, threshold]() {
+        RenderRecursive(outputImage, midX, yStart, xEnd, midY, threshold);
+    });
+
+    threads.emplace_back([this, &outputImage, xStart, midY, midX, yEnd, threshold]() {
+        RenderRecursive(outputImage, xStart, midY, midX, yEnd, threshold);
+    });
+
+    threads.emplace_back([this, &outputImage, midX, midY, xEnd, yEnd, threshold]() {
+        RenderRecursive(outputImage, midX, midY, xEnd, yEnd, threshold);
+
+    });
+
+    for (auto &t : threads) {
+        t.join();
+    }
+}
 
 bool sempRT::Scene::CastRay(const Ray &cameraRay, std::shared_ptr<ObjectBase> &closestObject, qbVector<double> &closestIntPoint, qbVector<double> &closestLocalNormal, qbVector<double> &closestLocalColor)
 {

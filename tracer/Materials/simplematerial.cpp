@@ -22,6 +22,7 @@ qbVector<double> sempRT::SimpleMaterial::ComputeColor(const std::vector<std::sha
   if(m_reflectivity > 0.0)
   {
     refcolor = ComputeReflectionColor(objectList, lightList, currentObject, intPoint, localNormal, ray);
+    m_reflectionDepth--;
   }
 
   matcolor = (refcolor * m_reflectivity) + difColor*(1.0 - m_reflectivity);

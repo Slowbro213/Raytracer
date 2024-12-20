@@ -22,6 +22,8 @@ namespace sempRT{
       bool CastRay(const Ray &cameraRay, std::shared_ptr<ObjectBase> &closestObject, qbVector<double> &closestIntPoint, qbVector<double> &closestLocalNormal, qbVector<double> &closestLocalColor);
 
     private:
+      void RenderRecursive(SempImage &outputImage, int xStart, int yStart, int xEnd, int yEnd, int threshold);
+
 
 
     private:
