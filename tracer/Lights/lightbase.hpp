@@ -1,10 +1,10 @@
 #ifndef LIGHTBASE_H
 #define LIGHTBASE_H
 
-#include "./qbLinAlg/qbVector.h"
-#include "ray.hpp"
+#include "../qbLinAlg/qbVector.h"
+#include "../ray.hpp"
 #include <memory>
-#include "objectbase.hpp"
+#include "../Primitives/objectbase.hpp"
 
 
 namespace sempRT {

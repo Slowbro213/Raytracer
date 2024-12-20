@@ -1,8 +1,8 @@
 #ifndef OBJECTSPHERE_H
 #define OBJECTSPHERE_H
 
-#include "objectbase.hpp"
-#include "gtfm.hpp"
+#include "../Primitives/objectbase.hpp"
+#include "../gtfm.hpp"
 
 namespace sempRT {
   class ObjectSphere : public ObjectBase {

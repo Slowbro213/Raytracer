@@ -24,3 +24,9 @@ bool sempRT::ObjectBase::CloseEnough(const double f1, const double f2) {
 void sempRT::ObjectBase::SetTransformMatrix(const sempRT::Gtform &tfm) {
   m_transformMatrix = tfm;
 }
+
+bool sempRT::ObjectBase::AssignMaterial(const std::shared_ptr<MaterialBase> &material) {
+  m_material = material;
+  hasMaterial = true;
+  return true;
+}

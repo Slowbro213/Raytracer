@@ -5,9 +5,9 @@
 #include <vector>
 #include "sempImage.hpp"
 #include "camera.hpp"
-#include "objectsphere.hpp"
-#include "pointlight.hpp"
-#include "objplane.hpp"
+#include "./Primitives/objectsphere.hpp"
+#include "./Lights/pointlight.hpp"
+#include "./Primitives/objplane.hpp"
 #include <memory>
 
 
@@ -19,6 +19,7 @@ namespace sempRT{
       ~Scene();
 
       bool Render(SempImage &outputImage);
+      bool CastRay(const Ray &cameraRay, std::shared_ptr<ObjectBase> &closestObject, qbVector<double> &closestIntPoint, qbVector<double> &closestLocalNormal, qbVector<double> &closestLocalColor);
 
     private:
 

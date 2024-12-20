@@ -9,6 +9,9 @@ CFLAGS = -std=c++17
 objects = main.o \
 					CApp.o \
 					$(patsubst %.cpp,%.o,$(wildcard tracer/*.cpp)) \
+					$(patsubst %.cpp,%.o,$(wildcard tracer/Primitives/*.cpp)) \
+					$(patsubst %.cpp,%.o,$(wildcard tracer/Lights/*.cpp)) \
+					$(patsubst %.cpp,%.o,$(wildcard tracer/Materials/*.cpp)) \
 
 
 rebuildables = $(objects) $(linkTarget)
@@ -25,6 +28,16 @@ clean:
 	rm -f $(rebuildables) 
 
 .PHONY:
+unprofile:
+	rm -f ./*.gcda ./*.gcno
+.PHONY:
 fast:
-	$(MAKE) $(linkTarget) CFLAGS="-Ofast -march=native -funroll-loops -std=c++17"
+	$(MAKE) $(linkTarget) CFLAGS="-Ofast -march=native -funroll-loops -ffast-math -std=c++17"
 
+.PHONY:
+profile:
+	$(MAKE) $(linkTarget) CFLAGS="-O3 -march=native -funroll-loops -ffast-math -std=c++17 -fprofile-generate"
+
+.PHONY:
+profile-use:
+	$(MAKE) $(linkTarget) CFLAGS="-O3 -march=native -funroll-loops -ffast-math -std=c++17 -fprofile-use"
