@@ -17,11 +17,14 @@ namespace sempRT {
     ~Gtform();
 
     Gtform(const qbMatrix2<double> &fwd, const qbMatrix2<double> &bck);
+    Gtform(const qbVector<double> &translation, const qbVector<double> &rotation, const qbVector<double> &scale);
 
 
     void SetTransform(const qbVector<double> &translation, const qbVector<double> &rotation, const qbVector<double> &scale);
     qbMatrix2<double> GetForward();
     qbMatrix2<double> GetBackward();
+
+
 
     sempRT::Ray Apply(const sempRT::Ray &inputRay, bool dirFlag);
     qbVector<double> Apply(const qbVector<double> &inputVector, bool dirFlag);

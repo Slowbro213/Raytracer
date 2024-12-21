@@ -5,6 +5,8 @@
 #include "tracer/sempImage.hpp"
 #include "tracer/scene.hpp"
 #include "tracer/camera.hpp"
+#include "tracer/Textures/flat.hpp"
+#include "tracer/Textures/checker.hpp"
 
 
 

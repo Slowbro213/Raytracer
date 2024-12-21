@@ -9,7 +9,7 @@ namespace sempRT {
     ObjectPlane();
     virtual ~ObjectPlane() override;
 
-    bool TestIntersections(const Ray &castRay, qbVector<double> &intPoint, qbVector<double> &localnormal, qbVector<double> &localColor) override;
+    bool TestIntersections(const Ray &castRay, qbVector<double> &intPoint, qbVector<double> &localnormal, qbVector<double> &localColor, qbVector<double> &uvCoords) override;
   };
 }
 

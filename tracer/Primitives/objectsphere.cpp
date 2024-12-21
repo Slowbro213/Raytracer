@@ -9,7 +9,7 @@ sempRT::ObjectSphere::ObjectSphere() {
 sempRT::ObjectSphere::~ObjectSphere() {
 }
 
-bool sempRT::ObjectSphere::TestIntersections(const Ray &castRay, qbVector<double> &intPoint, qbVector<double> &localnormal, qbVector<double> &localColor) {
+bool sempRT::ObjectSphere::TestIntersections(const Ray &castRay, qbVector<double> &intPoint, qbVector<double> &localnormal, qbVector<double> &localColor, qbVector<double> &uvCoords) {
   
 
   sempRT::Ray bcRay = m_transformMatrix.Apply(castRay, sempRT::BCKTFORM);
@@ -57,7 +57,26 @@ bool sempRT::ObjectSphere::TestIntersections(const Ray &castRay, qbVector<double
     localnormal.Normalize();
 
 
+
     localColor = m_baseColor;
+
+    double x = poi.GetElement(0);
+    double y = poi.GetElement(1);
+    double z = poi.GetElement(2);
+
+    double u = atan(sqrtf(pow(x,2.0) + pow(y,2.0)) / z);
+    double v = atan2(y,x);
+
+    if(v < 0.0) {
+      v += M_PI;
+    }
+
+    u = u / M_PI;
+    v = v / M_PI;
+
+
+    uvCoords.SetElement(0, u);
+    uvCoords.SetElement(1, v);
 
   }
 

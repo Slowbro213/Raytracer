@@ -15,7 +15,10 @@ bool CApp::OnInit()
     return false;
   }
 
-  pWindow = SDL_CreateWindow("RayTracer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
+  int xSize = 1280;
+  int ySize = 720;
+
+  pWindow = SDL_CreateWindow("RayTracer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, xSize, ySize, SDL_WINDOW_SHOWN);
   if (pWindow == NULL)
   {
     return false;
@@ -27,7 +30,7 @@ bool CApp::OnInit()
     return false;
   }
 
-  m_image.Initialize(1280, 720, pRenderer);
+  m_image.Initialize(xSize, ySize, pRenderer);
 
 
   SDL_SetRenderDrawColor(pRenderer, 255, 255, 255, 255);

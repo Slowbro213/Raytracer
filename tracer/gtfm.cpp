@@ -24,7 +24,10 @@ sempRT::Gtform::Gtform(const qbMatrix2<double> &fwd, const qbMatrix2<double> &bc
 
 
 }
-
+sempRT::Gtform::Gtform(const qbVector<double> &translation, const qbVector<double> &rotation, const qbVector<double> &scale)
+{
+	SetTransform(translation, rotation, scale);
+}
 
 void sempRT::Gtform::SetTransform(const qbVector<double> &translation, const qbVector<double> &rotation, const qbVector<double> &scale)
 {

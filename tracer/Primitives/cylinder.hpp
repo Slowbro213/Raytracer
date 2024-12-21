@@ -13,7 +13,7 @@ namespace sempRT {
 
     Cylinder& operator= (const Cylinder &rhs);
 
-    virtual bool TestIntersections(const Ray &ray, qbVector<double> &intPoint, qbVector<double> &localNormal, qbVector<double> &localColor) override;
+    virtual bool TestIntersections(const Ray &ray, qbVector<double> &intPoint, qbVector<double> &localNormal, qbVector<double> &localColor, qbVector<double> &uvCoords) override;
 
   };
 }

@@ -11,7 +11,7 @@ sempRT::PointLight::~PointLight()
 {
 }
 
-bool sempRT::PointLight::ComputeIllumination(const qbVector<double> &intPoint, const qbVector<double> &localNormal, const std::vector<std::shared_ptr<sempRT::ObjectBase>>& objectList, const std::shared_ptr<sempRT::ObjectBase> &currentObject, qbVector<double> &color, double &intensity)
+bool sempRT::PointLight::ComputeIllumination(const qbVector<double> &intPoint, const qbVector<double> &localNormal, const std::vector<std::shared_ptr<sempRT::ObjectBase>>& objectList, const std::shared_ptr<sempRT::ObjectBase> &currentObject, qbVector<double> &color, double &intensity, qbVector<double> &uvCoords)
 {
   qbVector<double> lightDir = (m_location -intPoint).Normalized();
 
@@ -28,7 +28,7 @@ bool sempRT::PointLight::ComputeIllumination(const qbVector<double> &intPoint, c
 	{
 		if (sceneObject != currentObject)
 		{
-			validInt = sceneObject -> TestIntersections(lightRay, poi, poiNormal, poiColor);
+			validInt = sceneObject -> TestIntersections(lightRay, poi, poiNormal, poiColor, uvCoords);
       if(validInt)
       {
         double dist = (poi - startPoint).norm();

@@ -11,14 +11,14 @@ sempRT::MaterialBase::~MaterialBase()
 {
 }
 
-qbVector<double> sempRT::MaterialBase::ComputeColor(const std::vector<std::shared_ptr<ObjectBase>> &objectList, const std::vector<std::shared_ptr<LightBase>> &lightList, const std::shared_ptr<ObjectBase> &currentObject, const qbVector<double> &intPoint, const qbVector<double> &localNormal, const sempRT::Ray &ray)
+qbVector<double> sempRT::MaterialBase::ComputeColor(const std::vector<std::shared_ptr<ObjectBase>> &objectList, const std::vector<std::shared_ptr<LightBase>> &lightList, const std::shared_ptr<ObjectBase> &currentObject, const qbVector<double> &intPoint, const qbVector<double> &localNormal, const sempRT::Ray &ray, qbVector<double> &uvCoords)
 {
   qbVector<double> color {3};
   return color;
 }
 
 
-qbVector<double> sempRT::MaterialBase::ComputeDiffuseColor(const std::vector<std::shared_ptr<ObjectBase>> &objectList, const std::vector<std::shared_ptr<LightBase>> &lightList, const std::shared_ptr<ObjectBase> &currentObject, const qbVector<double> &intPoint, const qbVector<double> &localNormal, const qbVector<double> &baseColor)
+qbVector<double> sempRT::MaterialBase::ComputeDiffuseColor(const std::vector<std::shared_ptr<ObjectBase>> &objectList, const std::vector<std::shared_ptr<LightBase>> &lightList, const std::shared_ptr<ObjectBase> &currentObject, const qbVector<double> &intPoint, const qbVector<double> &localNormal, const qbVector<double> &baseColor, qbVector<double> &uvCoords)
 {
   qbVector<double> diffuseColor {3};
   double intensity;
@@ -32,7 +32,7 @@ qbVector<double> sempRT::MaterialBase::ComputeDiffuseColor(const std::vector<std
 
   for (auto currentLight : lightList)
   {
-    bool validLight = currentLight -> ComputeIllumination(intPoint, localNormal, objectList, currentObject, color, intensity);
+    bool validLight = currentLight -> ComputeIllumination(intPoint, localNormal, objectList, currentObject, color, intensity, uvCoords);
 
     if (validLight)
     {
@@ -55,7 +55,7 @@ qbVector<double> sempRT::MaterialBase::ComputeDiffuseColor(const std::vector<std
   return diffuseColor;
 }
 
-qbVector<double> sempRT::MaterialBase::ComputeReflectionColor( const std::vector<std::shared_ptr<ObjectBase>> &objectList, const std::vector<std::shared_ptr<LightBase>> &lightList, const std::shared_ptr<ObjectBase> &currentObject, const qbVector<double> &intPoint, const qbVector<double> &localNormal, const sempRT::Ray &ray)
+qbVector<double> sempRT::MaterialBase::ComputeReflectionColor( const std::vector<std::shared_ptr<ObjectBase>> &objectList, const std::vector<std::shared_ptr<LightBase>> &lightList, const std::shared_ptr<ObjectBase> &currentObject, const qbVector<double> &intPoint, const qbVector<double> &localNormal, const sempRT::Ray &ray, qbVector<double> &uvCoords)
 {
   qbVector<double> refcolor {3};
   
@@ -68,7 +68,7 @@ qbVector<double> sempRT::MaterialBase::ComputeReflectionColor( const std::vector
   qbVector<double> closestLocalColor {3};
   std::shared_ptr<sempRT::ObjectBase> closestObject;
   
-  bool intersect = CastRay(reflectRay, objectList, currentObject,  closestObject, closestIntPoint, closestLocalNormal, closestLocalColor);
+  bool intersect = CastRay(reflectRay, objectList, currentObject,  closestObject, closestIntPoint, closestLocalNormal, closestLocalColor, uvCoords);
 
   qbVector<double> matColor {3};
 
@@ -78,11 +78,11 @@ qbVector<double> sempRT::MaterialBase::ComputeReflectionColor( const std::vector
 
     if(closestObject->hasMaterial)
     {
-      matColor = closestObject->m_material->ComputeColor(objectList, lightList, closestObject, closestIntPoint, closestLocalNormal, reflectRay);
+      matColor = closestObject->m_material->ComputeColor(objectList, lightList, closestObject, closestIntPoint, closestLocalNormal, reflectRay, uvCoords);
     }
     else
     {
-      matColor = ComputeDiffuseColor(objectList, lightList, closestObject, closestIntPoint, closestLocalNormal, closestObject->m_baseColor);
+      matColor = ComputeDiffuseColor(objectList, lightList, closestObject, closestIntPoint, closestLocalNormal, closestObject->m_baseColor, uvCoords);
     }
   }
 
@@ -90,7 +90,7 @@ qbVector<double> sempRT::MaterialBase::ComputeReflectionColor( const std::vector
 }
 
 
-bool sempRT::MaterialBase::CastRay (const Ray &ray, const std::vector<std::shared_ptr<ObjectBase>>& objectList, const std::shared_ptr<ObjectBase> &thisObject  , std::shared_ptr<ObjectBase> &closestObject, qbVector<double> &closestIntPoint, qbVector<double> &closestLocalNormal, qbVector<double> &closestLocalColor)
+bool sempRT::MaterialBase::CastRay (const Ray &ray, const std::vector<std::shared_ptr<ObjectBase>>& objectList, const std::shared_ptr<ObjectBase> &thisObject  , std::shared_ptr<ObjectBase> &closestObject, qbVector<double> &closestIntPoint, qbVector<double> &closestLocalNormal, qbVector<double> &closestLocalColor, qbVector<double> &uvCoords)
 {
   qbVector<double> intPoint {3};
   qbVector<double> localNormal {3};
@@ -105,7 +105,7 @@ bool sempRT::MaterialBase::CastRay (const Ray &ray, const std::vector<std::share
     {
       continue;
     }
-    bool validInt = currentObject -> TestIntersections(ray, intPoint, localNormal, localColor);
+    bool validInt = currentObject -> TestIntersections(ray, intPoint, localNormal, localColor, uvCoords);
 
     if (validInt)
     {
@@ -128,3 +128,8 @@ bool sempRT::MaterialBase::CastRay (const Ray &ray, const std::vector<std::share
 }
 
 
+void sempRT::MaterialBase::AssignTexture(const std::shared_ptr<sempRT::TextureBase> &texture)
+{
+  m_textures.push_back(texture);
+  m_hasTexture = true;
+}

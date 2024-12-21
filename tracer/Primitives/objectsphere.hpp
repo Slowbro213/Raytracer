@@ -10,7 +10,7 @@ namespace sempRT {
     ObjectSphere();
     virtual ~ObjectSphere() override;
 
-    virtual bool TestIntersections(const Ray &castRay, qbVector<double> &intPoint, qbVector<double> &localnormal, qbVector<double> &localColor) override;
+    virtual bool TestIntersections(const Ray &castRay, qbVector<double> &intPoint, qbVector<double> &localnormal, qbVector<double> &localColor, qbVector<double> &uvCoords) override;
 
 
   private:

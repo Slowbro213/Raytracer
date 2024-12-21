@@ -1,4 +1,5 @@
 #include "simplematerial.hpp"
+#include <mutex>
 
 sempRT::SimpleMaterial::SimpleMaterial()
 {
@@ -9,7 +10,7 @@ sempRT::SimpleMaterial::~SimpleMaterial()
 }
 
 
-qbVector<double> sempRT::SimpleMaterial::ComputeColor(const std::vector<std::shared_ptr<ObjectBase>> &objectList, const std::vector<std::shared_ptr<LightBase>> &lightList, const std::shared_ptr<ObjectBase> &currentObject, const qbVector<double> &intPoint, const qbVector<double> &localNormal, const sempRT::Ray &ray)
+qbVector<double> sempRT::SimpleMaterial::ComputeColor(const std::vector<std::shared_ptr<ObjectBase>> &objectList, const std::vector<std::shared_ptr<LightBase>> &lightList, const std::shared_ptr<ObjectBase> &currentObject, const qbVector<double> &intPoint, const qbVector<double> &localNormal, const sempRT::Ray &ray, qbVector<double> &uvCoords)
 {
   qbVector<double> matcolor {3};
   qbVector<double> refcolor {3};
@@ -17,11 +18,17 @@ qbVector<double> sempRT::SimpleMaterial::ComputeColor(const std::vector<std::sha
   qbVector<double> spcColor {3};
 
 
-  difColor = ComputeDiffuseColor(objectList, lightList, currentObject, intPoint, localNormal, m_baseColor);
+  if(!m_hasTexture)
+  {
+    difColor = ComputeDiffuseColor(objectList, lightList, currentObject, intPoint, localNormal, m_baseColor, uvCoords);
+  }
+  else {
+    difColor = ComputeDiffuseColor(objectList, lightList, currentObject, intPoint, localNormal, m_textures.at(0)->GetColor(uvCoords), uvCoords);
+  }
 
   if(m_reflectivity > 0.0)
   {
-    refcolor = ComputeReflectionColor(objectList, lightList, currentObject, intPoint, localNormal, ray);
+    refcolor = ComputeReflectionColor(objectList, lightList, currentObject, intPoint, localNormal, ray, uvCoords);
     m_reflectionDepth--;
   }
 
@@ -29,7 +36,7 @@ qbVector<double> sempRT::SimpleMaterial::ComputeColor(const std::vector<std::sha
 
   if(m_shine > 0.0)
   {
-    spcColor = ComputeSpecular(objectList, lightList, currentObject, intPoint, localNormal, ray);
+    spcColor = ComputeSpecular(objectList, lightList, currentObject, intPoint, localNormal, ray, uvCoords);
   }
 
 
@@ -39,7 +46,7 @@ qbVector<double> sempRT::SimpleMaterial::ComputeColor(const std::vector<std::sha
 }
 
 
-qbVector<double> sempRT::SimpleMaterial::ComputeSpecular( const std::vector<std::shared_ptr<ObjectBase>> &objectList, const std::vector<std::shared_ptr<LightBase>> &lightList, const std::shared_ptr<ObjectBase> &currentObject, const qbVector<double> &intPoint, const qbVector<double> &localNormal, const sempRT::Ray &ray){
+qbVector<double> sempRT::SimpleMaterial::ComputeSpecular( const std::vector<std::shared_ptr<ObjectBase>> &objectList, const std::vector<std::shared_ptr<LightBase>> &lightList, const std::shared_ptr<ObjectBase> &currentObject, const qbVector<double> &intPoint, const qbVector<double> &localNormal, const sempRT::Ray &ray, qbVector<double> &uvCoords){
 
   qbVector<double> spcColor {3};
   double red = 0.0;
@@ -62,7 +69,7 @@ qbVector<double> sempRT::SimpleMaterial::ComputeSpecular( const std::vector<std:
     bool validInt = false;
     for (auto sceneObject : objectList)
     {
-        validInt = sceneObject -> TestIntersections(lightRay, poi, poiNormal, poiColor);
+        validInt = sceneObject -> TestIntersections(lightRay, poi, poiNormal, poiColor, uvCoords);
 
       if (validInt)
         break;

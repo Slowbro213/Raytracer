@@ -17,7 +17,7 @@ namespace sempRT
 			
 			// Override the function to test for intersections.
 			virtual bool TestIntersections(	const sempRT::Ray &castRay, qbVector<double> &intPoint,
-																			qbVector<double> &localNormal, qbVector<double> &localColor) override;			
+																			qbVector<double> &localNormal, qbVector<double> &localColor, qbVector<double> &uvCoords) override;			
 	};
 }
 

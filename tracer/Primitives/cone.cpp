@@ -13,19 +13,24 @@ sempRT::Cone::~Cone()
 }
 
 bool sempRT::Cone::TestIntersections(	const sempRT::Ray &castRay, qbVector<double> &intPoint,
-																		qbVector<double> &localNormal, qbVector<double> &localColor)
+																		qbVector<double> &localNormal, qbVector<double> &localColor, qbVector<double> &uvCoords)
 {
+	// Copy the ray and apply the backwards transform.
 	sempRT::Ray bckRay = m_transformMatrix.Apply(castRay, sempRT::BCKTFORM);
 	
+	// Copy the m_lab vector from bckRay and normalize it.
 	qbVector<double> v = bckRay.m_lab;
 	v.Normalize();
 	
+	// Get the start point of the line.
 	qbVector<double> p = bckRay.m_point1;
 	
+	// Compute a, b and c.
 	double a = std::pow(v.GetElement(0), 2.0) + std::pow(v.GetElement(1), 2.0) - std::pow(v.GetElement(2), 2.0);
 	double b = 2 * (p.GetElement(0)*v.GetElement(0) + p.GetElement(1)*v.GetElement(1) - p.GetElement(2)*v.GetElement(2));
 	double c = std::pow(p.GetElement(0), 2.0) + std::pow(p.GetElement(1), 2.0) - std::pow(p.GetElement(2), 2.0);
 	
+	// Compute b^2 - 4ac.
 	double numSQRT = sqrtf(std::pow(b, 2.0) - 4 * a * c);
 	
 	std::array<qbVector<double>, 3> poi;
@@ -33,9 +38,11 @@ bool sempRT::Cone::TestIntersections(	const sempRT::Ray &castRay, qbVector<doubl
 	bool t1Valid, t2Valid, t3Valid;
 	if (numSQRT > 0.0)
 	{
+		// Compute the values of t.
 		t.at(0) = (-b + numSQRT) / (2 * a);
 		t.at(1) = (-b - numSQRT) / (2 * a);
 		
+		// Compute the points of intersection.
 		poi.at(0) = bckRay.m_point1 + (v * t[0]);
 		poi.at(1) = bckRay.m_point1 + (v * t[1]);
 		
@@ -67,6 +74,7 @@ bool sempRT::Cone::TestIntersections(	const sempRT::Ray &castRay, qbVector<doubl
 		t.at(1) = 100e6;
 	}
 	
+	// And test the end cap.
 	if (CloseEnough(v.GetElement(2), 0.0))
 	{
 		t3Valid = false;
@@ -74,10 +82,13 @@ bool sempRT::Cone::TestIntersections(	const sempRT::Ray &castRay, qbVector<doubl
 	}
 	else
 	{	
+		// Compute values for t.
 		t.at(2) = (bckRay.m_point1.GetElement(2) - 1.0) / -v.GetElement(2);
 		
+		// Compute points of intersection.
 		poi.at(2) = bckRay.m_point1 + t.at(2) * v;
 		
+		// Check if these are valid.
 		if ((t.at(2) > 0.0) && (sqrtf(std::pow(poi.at(2).GetElement(0), 2.0) + std::pow(poi.at(2).GetElement(1), 2.0)) < 1.0))
 		{
 			t3Valid = true;
@@ -89,9 +100,11 @@ bool sempRT::Cone::TestIntersections(	const sempRT::Ray &castRay, qbVector<doubl
 		}						
 	}
 	
+	// If no valid intersections found, then we can stop.
 	if ((!t1Valid) && (!t2Valid) && (!t3Valid))
 		return false;	
 		
+	// Check for the smallest valid value of t.
 	int minIndex = 0;
 	double minValue = 10e6;
 	for (int i=0; i<3; ++i)
@@ -103,11 +116,15 @@ bool sempRT::Cone::TestIntersections(	const sempRT::Ray &castRay, qbVector<doubl
 		}
 	}
 	
+	/* If minIndex is either 0 or 1, then we have a valid intersection
+		with the cone itself. */
 	qbVector<double> validPOI = poi.at(minIndex);
 	if (minIndex < 2)
 	{		
+		// Transform the intersection point back into world coordinates.
 		intPoint = m_transformMatrix.Apply(validPOI, sempRT::FWDTFORM);		
 			
+		// Compute the local normal.
 		qbVector<double> orgNormal {3};
 		qbVector<double> newNormal {3};
 		qbVector<double> localOrigin {std::vector<double> {0.0, 0.0, 0.0}};
@@ -121,26 +138,44 @@ bool sempRT::Cone::TestIntersections(	const sempRT::Ray &castRay, qbVector<doubl
 		newNormal = m_transformMatrix.Apply(orgNormal, sempRT::FWDTFORM) - globalOrigin;
 		newNormal.Normalize();		
 		localNormal = newNormal;
+
 			
+		// Return the base color.
 		localColor = m_baseColor;
+    double x = validPOI.GetElement(0);
+		double y = validPOI.GetElement(1);
+		double z = validPOI.GetElement(2);
+		double u = atan2(y,x) / M_PI;
+		double v = (z * 2.0) + 1.0;
+
+    uvCoords.SetElement(0, u);
+    uvCoords.SetElement(1, v);
 	
 		return true;
 	}
 	else
 	{
+		// Check the end cap.
 		if (!CloseEnough(v.GetElement(2), 0.0))
 		{
+			// Check if we are inside the disk.
 			if (sqrtf(std::pow(validPOI.GetElement(0), 2.0) + std::pow(validPOI.GetElement(1), 2.0)) < 1.0)
 			{
+				// Transform the intersection point back into world coordinates.
 				intPoint = m_transformMatrix.Apply(validPOI, sempRT::FWDTFORM);				
 				
+				// Compute the local normal.
 				qbVector<double> localOrigin {std::vector<double> {0.0, 0.0, 0.0}};
 				qbVector<double> normalVector {std::vector<double> {0.0, 0.0, 1.0}};
 				qbVector<double> globalOrigin = m_transformMatrix.Apply(localOrigin, sempRT::FWDTFORM);
 				localNormal = m_transformMatrix.Apply(normalVector, sempRT::FWDTFORM) - globalOrigin;
 				localNormal.Normalize();
 						
+				// Return the base color.
 				localColor = m_baseColor;
+
+        uvCoords.SetElement(0, validPOI.GetElement(0));
+        uvCoords.SetElement(1, validPOI.GetElement(1));
 						
 				return true;				
 			}
@@ -156,5 +191,4 @@ bool sempRT::Cone::TestIntersections(	const sempRT::Ray &castRay, qbVector<doubl
 		
 	}		
 	
-	return false;
-}
+	return false;}

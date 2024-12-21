@@ -1,5 +1,6 @@
 #include "scene.hpp"
 #include "./Materials/simplematerial.hpp"
+#include "./Textures/checker.hpp"
 #include <thread>
 #include <mutex>
 
@@ -23,9 +24,10 @@ sempRT::Scene::Scene()
 
   m_objectList.push_back(std::make_shared<sempRT::Cylinder> (sempRT::Cylinder()));
   m_objectList.push_back(std::make_shared<sempRT::ObjectSphere> (sempRT::ObjectSphere()));
-  m_objectList.push_back(std::make_shared<sempRT::Cone> (sempRT::Cone()));
+  m_objectList.push_back(std::make_shared<sempRT::ObjectSphere> (sempRT::ObjectSphere()));
 
   m_objectList.push_back(std::make_shared<sempRT::ObjectPlane> (sempRT::ObjectPlane()));
+  
   m_objectList.at(3) -> m_baseColor = qbVector<double>{std::vector<double> {0.5, 0.5, 0.5}};
 
 
@@ -36,6 +38,11 @@ sempRT::Scene::Scene()
   mattest2 -> m_baseColor = qbVector<double>{std::vector<double> {0.5,0.5,0.5}};
   mattest2 -> m_reflectivity = 0.5;
   mattest2 -> m_shine = 10;
+  sempRT::Checker checker;
+  checker.SetTransformMatrix(qbVector<double>{std::vector<double>{0.0, 0.0}},
+      0.0,
+      qbVector<double>{std::vector<double>{0.5,0.5}});
+  mattest2 -> AssignTexture(std::make_shared<sempRT::Checker> (checker));
   mattest3 -> m_baseColor = qbVector<double>{std::vector<double> {0.0,0.5,0.5}};
   mattest3 -> m_reflectivity = 0.8;
   mattest3 -> m_shine = 5;
@@ -123,19 +130,21 @@ void sempRT::Scene::RenderRecursive(SempImage &outputImage, int xStart, int ySta
                 qbVector<double> closestIntPoint{3}, closestLocalNormal{3}, closestLocalColor{3};
                 std::shared_ptr<sempRT::ObjectBase> closestObject = nullptr;
 
-                bool hitFlag = CastRay(cameraRay, closestObject, closestIntPoint, closestLocalNormal, closestLocalColor);
+                qbVector<double> uvCoords{2};
+                bool hitFlag = CastRay(cameraRay, closestObject, closestIntPoint, closestLocalNormal, closestLocalColor, uvCoords);
 
                 qbVector<double> pixelColor{3};
                 if (hitFlag) {
                     if (closestObject->hasMaterial) {
+                        
                         pixelColor = closestObject->m_material->ComputeColor(
                             m_objectList, m_lightList, closestObject,
-                            closestIntPoint, closestLocalNormal, cameraRay
+                            closestIntPoint, closestLocalNormal, cameraRay, uvCoords
                         );
                     } else {
                         pixelColor = sempRT::MaterialBase::ComputeDiffuseColor(
                             m_objectList, m_lightList, closestObject,
-                            closestIntPoint, closestLocalNormal, closestObject->m_baseColor
+                            closestIntPoint, closestLocalNormal, closestObject->m_baseColor, uvCoords
                         );
                     }
                 }
@@ -173,7 +182,7 @@ void sempRT::Scene::RenderRecursive(SempImage &outputImage, int xStart, int ySta
     }
 }
 
-bool sempRT::Scene::CastRay(const Ray &cameraRay, std::shared_ptr<ObjectBase> &closestObject, qbVector<double> &closestIntPoint, qbVector<double> &closestLocalNormal, qbVector<double> &closestLocalColor)
+bool sempRT::Scene::CastRay(const Ray &cameraRay, std::shared_ptr<ObjectBase> &closestObject, qbVector<double> &closestIntPoint, qbVector<double> &closestLocalNormal, qbVector<double> &closestLocalColor, qbVector<double> &uvCoords)
 {
 
   qbVector<double> intPoint {3};
@@ -185,7 +194,7 @@ bool sempRT::Scene::CastRay(const Ray &cameraRay, std::shared_ptr<ObjectBase> &c
 
   for (auto currentObject : m_objectList) {
 
-    bool validInt = currentObject -> TestIntersections(cameraRay, intPoint, localNormal, localColor);
+    bool validInt = currentObject -> TestIntersections(cameraRay, intPoint, localNormal, localColor, uvCoords);
 
     if (validInt)
     {

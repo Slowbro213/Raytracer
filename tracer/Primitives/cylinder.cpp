@@ -10,7 +10,7 @@ sempRT::Cylinder::~Cylinder()
 {
 }
 
-bool sempRT::Cylinder::TestIntersections(const Ray &ray, qbVector<double> &intPoint, qbVector<double> &localNormal, qbVector<double> &localColor)
+bool sempRT::Cylinder::TestIntersections(const Ray &ray, qbVector<double> &intPoint, qbVector<double> &localNormal, qbVector<double> &localColor, qbVector<double> &uvCoords)
 {
 
   sempRT::Ray localRay =  m_transformMatrix.Apply(ray, sempRT::BCKTFORM);
@@ -136,6 +136,17 @@ bool sempRT::Cylinder::TestIntersections(const Ray &ray, qbVector<double> &intPo
     newNormal.Normalize();
     localNormal = newNormal;
     localColor = m_baseColor;
+
+    double x = intPointLocal.GetElement(0);
+    double y = intPointLocal.GetElement(1);
+    double z = intPointLocal.GetElement(2);
+
+    double u = atan2(y,x) / M_PI;
+    double v = z;
+
+    uvCoords.SetElement(0, u);
+    uvCoords.SetElement(1, v);
+
     return true;
   }else{
 
@@ -151,6 +162,13 @@ bool sempRT::Cylinder::TestIntersections(const Ray &ray, qbVector<double> &intPo
         localNormal = m_transformMatrix.Apply(normalVector, sempRT::FWDTFORM) - globalOrigin;
         localNormal.Normalize();
         localColor = m_baseColor;
+
+
+        double x = intPointLocal.GetElement(0);
+        double y = intPointLocal.GetElement(1);
+
+        uvCoords.SetElement(0, x);
+        uvCoords.SetElement(1, y);
         
         return true;
       }

@@ -7,7 +7,7 @@ sempRT::ObjectPlane::ObjectPlane() {
 sempRT::ObjectPlane::~ObjectPlane() {
 }
 
-bool sempRT::ObjectPlane::TestIntersections(const Ray &castRay, qbVector<double> &intPoint, qbVector<double> &localnormal, qbVector<double> &localColor) {
+bool sempRT::ObjectPlane::TestIntersections(const Ray &castRay, qbVector<double> &intPoint, qbVector<double> &localnormal, qbVector<double> &localColor, qbVector<double> &uvCoords) {
 
   sempRT::Ray bcRay = m_transformMatrix.Apply(castRay, sempRT::BCKTFORM);
 	
@@ -46,6 +46,10 @@ bool sempRT::ObjectPlane::TestIntersections(const Ray &castRay, qbVector<double>
   localnormal.Normalize();
 
   localColor = m_baseColor;
+
+
+  uvCoords.SetElement(0, u);
+  uvCoords.SetElement(1, v);
 
   return true;
 }
