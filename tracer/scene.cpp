@@ -12,7 +12,7 @@ sempRT::Scene::Scene()
 
   mattest -> m_baseColor = qbVector<double>{std::vector<double> {1,0.0,0.0}};
   mattest -> m_reflectivity = 0.5;
-  mattest -> m_shine = 9;
+  mattest -> m_shine = 10;
 
   m_camera.SetPosition(	qbVector<double>{std::vector<double> {0.0, -10.0, -4.0}} );
   m_camera.SetLookAt	( qbVector<double>{std::vector<double> {0.0, 0.0, 0.0}} );
@@ -21,9 +21,9 @@ sempRT::Scene::Scene()
   m_camera.SetAspect(16.0 / 9.0);
   m_camera.UpdateCameraGeometry();
 
+  m_objectList.push_back(std::make_shared<sempRT::Cylinder> (sempRT::Cylinder()));
   m_objectList.push_back(std::make_shared<sempRT::ObjectSphere> (sempRT::ObjectSphere()));
-  m_objectList.push_back(std::make_shared<sempRT::ObjectSphere> (sempRT::ObjectSphere()));
-  m_objectList.push_back(std::make_shared<sempRT::ObjectSphere> (sempRT::ObjectSphere()));
+  m_objectList.push_back(std::make_shared<sempRT::Cone> (sempRT::Cone()));
 
   m_objectList.push_back(std::make_shared<sempRT::ObjectPlane> (sempRT::ObjectPlane()));
   m_objectList.at(3) -> m_baseColor = qbVector<double>{std::vector<double> {0.5, 0.5, 0.5}};

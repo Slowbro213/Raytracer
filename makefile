@@ -29,7 +29,7 @@ clean:
 
 .PHONY:
 unprofile:
-	rm -f ./*.gcda ./*.gcno
+	rm -rf ./*.gcda ./*.gcno
 .PHONY:
 fast:
 	$(MAKE) $(linkTarget) CFLAGS="-Ofast -march=native -funroll-loops -ffast-math -std=c++17"

@@ -66,7 +66,7 @@ void sempRT::Gtform::SetTransform(const qbVector<double> &translation, const qbV
   scaleMat.SetElement(2, 2, scale.GetElement(2));
   
 
-  m_fwdtfm = transMat * scaleMat * rotMatX * rotMatY * rotMatZ;
+  m_fwdtfm = transMat * rotMatX * rotMatY * rotMatZ * scaleMat;
 
   m_bcktfm = m_fwdtfm;
   m_bcktfm.Inverse();

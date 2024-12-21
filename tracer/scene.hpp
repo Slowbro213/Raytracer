@@ -8,6 +8,8 @@
 #include "./Primitives/objectsphere.hpp"
 #include "./Lights/pointlight.hpp"
 #include "./Primitives/objplane.hpp"
+#include "./Primitives/cylinder.hpp"
+#include "./Primitives/cone.hpp"
 #include <memory>
 
 

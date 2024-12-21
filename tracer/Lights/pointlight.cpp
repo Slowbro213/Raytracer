@@ -29,10 +29,21 @@ bool sempRT::PointLight::ComputeIllumination(const qbVector<double> &intPoint, c
 		if (sceneObject != currentObject)
 		{
 			validInt = sceneObject -> TestIntersections(lightRay, poi, poiNormal, poiColor);
+      if(validInt)
+      {
+        double dist = (poi - startPoint).norm();
+        if (dist > (m_location - intPoint).norm())
+        {
+          validInt = false;
+        }
+      }
 		}
+
+    if(validInt)
+    {
+      break;
+    }
 		
-		if (validInt)
-			break;
 	}
 
 	if (!validInt)
