@@ -3,7 +3,7 @@
 
 sempRT::MaterialBase::MaterialBase()
 {
-  m_maxReflectionRays = 3;
+  m_maxReflectionRays = 300;
   m_reflectionDepth = 0;
 }
 
